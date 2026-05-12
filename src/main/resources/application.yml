@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: ashram-donation-management
+
+aws:
+  region: ap-south-1
+  dynamodb:
+    tables:
+      donors: ngo-donors
+      donations: ngo-donations
+  ses:
+    sender-email: chaitanyakonge2002@gmail.com
+
+server:
+  port: 8080
