@@ -9,99 +9,116 @@ import com.ashram.donation.dto.response.GetDonorResponse;
 import com.ashram.donation.dto.response.GetDonorsResponse;
 import com.ashram.donation.entity.Donor;
 import com.ashram.donation.service.DonorService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.ArrayList;
 
-@Validated
-@RestController
-@RequestMapping(ControllerUrls.DONOR_BASE)
+@Slf4j
+@Singleton
+@Path(ControllerUrls.DONOR_BASE)
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class DonorController {
-
-    private static final Logger logger = LoggerFactory.getLogger(DonorController.class);
 
     private final DonorService donorService;
 
-    public DonorController(DonorService donorService) {
+    @Inject
+    public DonorController(@NonNull final DonorService donorService) {
         this.donorService = donorService;
     }
 
-    @PostMapping(ControllerUrls.GET_DONOR_BY_ID)
-    public GetDonorResponse getDonorById(@RequestBody GetDonorByIdRequest request) {
-        logger.info("Welcome to getDonorById, request: {}", request);
+    @POST
+    @Path(ControllerUrls.GET_DONOR_BY_ID)
+    public Response getDonorById(GetDonorByIdRequest request) {
+        log.info("Welcome to getDonorById, request: {}", request);
         if (request == null) {
-            return GetDonorResponse.builder()
-                    .acknowledgement(new AcknowledgementPojo(false, "Bad request, please verify your request"))
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(GetDonorResponse.builder()
+                            .acknowledgement(new AcknowledgementPojo(false, "Bad request, please verify your request"))
+                            .build())
                     .build();
         }
-        GetDonorResponse response;
         try {
-            response = toResponse(donorService.getDonorById(request.getDonorId()));
+            GetDonorResponse response = toResponse(donorService.getDonorById(request.getDonorId()));
+            return Response.ok(response).build();
         } catch (Exception e) {
-            logger.error("Error occurred while retrieving donor by id, request: {}", request);
-            response = GetDonorResponse.builder()
-                    .acknowledgement(new AcknowledgementPojo(false, "Something wrong happened on the server"))
+            log.error("Error occurred while retrieving donor by id, request: {}", request, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(GetDonorResponse.builder()
+                            .acknowledgement(new AcknowledgementPojo(false, "Something wrong happened on the server"))
+                            .build())
                     .build();
         }
-        return response;
     }
 
-    @PostMapping(ControllerUrls.SEARCH_DONORS)
-    public GetDonorsResponse searchDonors(@RequestBody SearchDonorsRequest request) {
-        logger.info("Welcome to searchDonors, request: {}", request);
+    @POST
+    @Path(ControllerUrls.SEARCH_DONORS)
+    public Response searchDonors(SearchDonorsRequest request) {
+        log.info("Welcome to searchDonors, request: {}", request);
         if (request == null) {
-            return GetDonorsResponse.builder()
-                    .acknowledgement(new AcknowledgementPojo(false, "Bad request, please verify your request"))
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(GetDonorsResponse.builder()
+                            .acknowledgement(new AcknowledgementPojo(false, "Bad request, please verify your request"))
+                            .build())
                     .build();
         }
-        GetDonorsResponse response;
         try {
             if (request.getMobile() == null && request.getName() == null) {
-                return GetDonorsResponse.builder()
-                        .acknowledgement(new AcknowledgementPojo(false, "Provide either mobile or name in request"))
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(GetDonorsResponse.builder()
+                                .acknowledgement(new AcknowledgementPojo(false, "Provide either mobile or name in request"))
+                                .build())
                         .build();
             }
             var donors = request.getMobile() != null
                     ? donorService.searchByContactNumber(request.getMobile())
                     : donorService.searchByName(request.getName());
-            response = GetDonorsResponse.builder()
+            GetDonorsResponse response = GetDonorsResponse.builder()
                     .donors(donors.stream().map(this::toResponse).toList())
                     .acknowledgement(new AcknowledgementPojo(true, "Donors fetched successfully"))
                     .build();
+            return Response.ok(response).build();
         } catch (Exception e) {
-            logger.error("Error occurred while searching donors, request: {}", request);
-            response = GetDonorsResponse.builder()
-                    .donors(new ArrayList<>())
-                    .acknowledgement(new AcknowledgementPojo(false, "Something wrong happened on the server"))
+            log.error("Error occurred while searching donors, request: {}", request, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(GetDonorsResponse.builder()
+                            .donors(new ArrayList<>())
+                            .acknowledgement(new AcknowledgementPojo(false, "Something wrong happened on the server"))
+                            .build())
                     .build();
         }
-        return response;
     }
 
-    @PostMapping(ControllerUrls.SOFT_DELETE_DONOR)
-    public GetDonorResponse softDeleteDonor(@RequestBody SoftDeleteDonorRequest request) {
-        logger.info("Welcome to softDeleteDonor, request: {}", request);
+    @POST
+    @Path(ControllerUrls.SOFT_DELETE_DONOR)
+    public Response softDeleteDonor(SoftDeleteDonorRequest request) {
+        log.info("Welcome to softDeleteDonor, request: {}", request);
         if (request == null) {
-            return GetDonorResponse.builder()
-                    .acknowledgement(new AcknowledgementPojo(false, "Bad request, please verify your request"))
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(GetDonorResponse.builder()
+                            .acknowledgement(new AcknowledgementPojo(false, "Bad request, please verify your request"))
+                            .build())
                     .build();
         }
-        GetDonorResponse response;
         try {
             donorService.softDeleteDonor(request.getDonorId(), request.getDeletedBy());
-            response = GetDonorResponse.builder()
+            return Response.ok(GetDonorResponse.builder()
                     .acknowledgement(new AcknowledgementPojo(true, "Donor deleted successfully"))
-                    .build();
+                    .build()).build();
         } catch (Exception e) {
-            logger.error("Error occurred while deleting donor, request: {}", request);
-            response = GetDonorResponse.builder()
-                    .acknowledgement(new AcknowledgementPojo(false, "Something wrong happened on the server"))
+            log.error("Error occurred while deleting donor, request: {}", request, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(GetDonorResponse.builder()
+                            .acknowledgement(new AcknowledgementPojo(false, "Something wrong happened on the server"))
+                            .build())
                     .build();
         }
-        return response;
     }
 
     private GetDonorResponse toResponse(Donor donor) {

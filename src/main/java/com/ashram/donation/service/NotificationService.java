@@ -4,43 +4,35 @@ import com.ashram.donation.entity.Donation;
 import com.ashram.donation.entity.Donor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.*;
 
-@Service
+
 public class NotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
 
     private final SesClient sesClient;
-    private final DonationService donationService;
-    private final DonorService donorService;
+    private final String senderEmail;
 
-    @Value("${aws.ses.sender-email}")
-    private String senderEmail;
-
-    public NotificationService(SesClient sesClient,
-                               DonationService donationService,
-                               DonorService donorService) {
-        this.sesClient = sesClient;
-        this.donationService = donationService;
-        this.donorService = donorService;
+    public NotificationService() {
+        this.sesClient = SesClient.builder()
+                .region(Region.of(System.getenv().getOrDefault("AWS_REGION_OVERRIDE", "ap-south-1")))
+                .build();
+        this.senderEmail = System.getenv("AWS_SES_SENDER_EMAIL");
     }
 
-    public void sendReceipt(String transactionId) {
+    public void sendReceipt(Donor donor, Donation donation) {
         try {
-            logger.info("Sending receipt for transactionId: {}", transactionId);
-            Donation donation = donationService.getDonationById(transactionId);
-            Donor donor = donorService.getDonorById(donation.getDonorId());
+            logger.info("Sending receipt for transactionId: {}", donation.getTransactionId());
 
             if (donor.getEmail() == null || donor.getEmail().isBlank()) {
-                logger.info("No email found for donor, skipping receipt for transactionId: {}", transactionId);
+                logger.info("No email found for donor, skipping receipt for transactionId: {}", donation.getTransactionId());
                 return;
             }
 
-            String subject = "Donation Receipt - " + transactionId;
+            String subject = "Donation Receipt - " + donation.getTransactionId();
             String body = buildReceiptBody(donor, donation);
 
             sesClient.sendEmail(SendEmailRequest.builder()
@@ -54,11 +46,9 @@ public class NotificationService {
                             .build())
                     .build());
 
-            donation.setReceiptGenerated(true);
-            donationService.recordDonation(donation);
-            logger.info("Receipt sent successfully for transactionId: {}, to email: {}", transactionId, donor.getEmail());
+            logger.info("Receipt sent successfully for transactionId: {}, to email: {}", donation.getTransactionId(), donor.getEmail());
         } catch (Exception e) {
-            logger.error("Failed to send receipt for transactionId: {}", transactionId, e);
+            logger.error("Failed to send receipt for transactionId: {}", donation.getTransactionId(), e);
         }
     }
 

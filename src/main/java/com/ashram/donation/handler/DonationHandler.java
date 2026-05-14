@@ -6,9 +6,8 @@ import com.ashram.donation.entity.Donor;
 import com.ashram.donation.service.DonationService;
 import com.ashram.donation.service.DonorService;
 import com.ashram.donation.service.NotificationService;
-import org.springframework.stereotype.Service;
 
-@Service
+
 public class DonationHandler {
 
     private final DonorService donorService;
@@ -51,8 +50,11 @@ public class DonationHandler {
         // 3. Save the Donation
         String transactionId = donationService.recordDonation(donation);
 
-        // 4. Async receipt trigger
-        notificationService.sendReceipt(transactionId);
+        // 4. Update donation with transaction ID
+        donation.setTransactionId(transactionId);
+
+        // 5. Async receipt trigger
+        notificationService.sendReceipt(donor, donation);
 
         return transactionId;
     }

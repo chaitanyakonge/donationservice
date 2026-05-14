@@ -4,12 +4,11 @@ import com.ashram.donation.entity.Donor;
 import com.ashram.donation.exception.ResourceNotFoundException;
 import com.ashram.donation.repository.DonorRepository;
 import com.ashram.donation.util.EpochUtil;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
-@Service
+
 public class DonorService {
 
     private final DonorRepository donorRepository;

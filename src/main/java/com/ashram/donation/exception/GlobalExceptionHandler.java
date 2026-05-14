@@ -1,27 +1,27 @@
 package com.ashram.donation.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 import java.util.Map;
 
-@RestControllerAdvice
-public class GlobalExceptionHandler {
+@Provider
+public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred"));
+    @Override
+    public Response toResponse(Exception exception) {
+        if (exception instanceof ResourceNotFoundException) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", exception.getMessage()))
+                    .build();
+        } else if (exception instanceof IllegalArgumentException) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", exception.getMessage()))
+                    .build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "An unexpected error occurred"))
+                    .build();
+        }
     }
 }
