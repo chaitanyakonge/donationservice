@@ -46,6 +46,10 @@ public class DonorService {
         return donorId;
     }
 
+    public List<Donor> getAllDonors() {
+        return donorRepository.findAll();
+    }
+
     public Donor getDonorById(String donorId) {
         return donorRepository.findByPk("DONOR#" + donorId)
                 .filter(d -> !Boolean.TRUE.equals(d.getIsDeleted()))

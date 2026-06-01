@@ -9,6 +9,7 @@ public class ControllerUrls {
     public static final String DONATION_BASE = "/api/donations";
 
     // Donor URLs
+    public static final String GET_ALL_DONORS = "/getalldonors";
     public static final String GET_DONOR_BY_ID = "/getdonorbyid";
     public static final String SEARCH_DONORS = "/searchdonors";
     public static final String SOFT_DELETE_DONOR = "/softdeletedonor";

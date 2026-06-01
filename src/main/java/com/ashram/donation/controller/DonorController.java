@@ -34,6 +34,26 @@ public class DonorController {
     }
 
     @POST
+    @Path(ControllerUrls.GET_ALL_DONORS)
+    public Response getAllDonors() {
+        try {
+            GetDonorsResponse response = GetDonorsResponse.builder()
+                    .donors(donorService.getAllDonors().stream().map(this::toResponse).toList())
+                    .acknowledgement(new AcknowledgementPojo(true, "Donors fetched successfully"))
+                    .build();
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving all donors", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(GetDonorsResponse.builder()
+                            .donors(new ArrayList<>())
+                            .acknowledgement(new AcknowledgementPojo(false, "Something wrong happened on the server"))
+                            .build())
+                    .build();
+        }
+    }
+
+    @POST
     @Path(ControllerUrls.GET_DONOR_BY_ID)
     public Response getDonorById(GetDonorByIdRequest request) {
         log.info("Welcome to getDonorById, request: {}", request);

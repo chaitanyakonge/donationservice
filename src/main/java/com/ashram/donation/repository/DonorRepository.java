@@ -5,6 +5,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
+import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,14 @@ public class DonorRepository {
         return index.query(QueryConditional.keyEqualTo(Key.builder().partitionValue(fullName.toLowerCase()).build()))
                 .stream()
                 .flatMap(page -> page.items().stream())
+                .toList();
+    }
+
+    public List<Donor> findAll() {
+        return donorTable.scan(ScanEnhancedRequest.builder().build())
+                .stream()
+                .flatMap(page -> page.items().stream())
+                .filter(donor -> !Boolean.TRUE.equals(donor.getIsDeleted()))
                 .toList();
     }
 }
