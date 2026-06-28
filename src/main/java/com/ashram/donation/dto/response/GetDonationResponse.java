@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class GetDonationResponse {
     private String transactionId;
     private String donorId;
+    private String donorName;
     private Double amount;
     private String paymentMode;
     private String bankReferenceNumber;

@@ -44,7 +44,7 @@ public class DonationHandler {
                 .paymentMode(request.getPaymentMode().name())
                 .bankReferenceNumber(request.getBankReferenceNumber())
                 .eventDescription(request.getEventDescription())
-                .status("PENDING")
+                .status(request.getStatus().name())
                 .build();
 
         // 3. Save the Donation

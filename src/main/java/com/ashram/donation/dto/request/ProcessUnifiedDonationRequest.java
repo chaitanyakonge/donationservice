@@ -1,5 +1,6 @@
 package com.ashram.donation.dto.request;
 
+import com.ashram.donation.enums.DonationStatus;
 import com.ashram.donation.enums.PaymentMode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -33,4 +34,7 @@ public class ProcessUnifiedDonationRequest {
 
     private String bankReferenceNumber;
     private String eventDescription;
+
+    @NotNull
+    private DonationStatus status;
 }

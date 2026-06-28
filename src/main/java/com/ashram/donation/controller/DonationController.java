@@ -5,8 +5,10 @@ import com.ashram.donation.dto.ControllerUrls;
 import com.ashram.donation.dto.request.*;
 import com.ashram.donation.dto.response.*;
 import com.ashram.donation.entity.Donation;
+import com.ashram.donation.entity.Donor;
 import com.ashram.donation.handler.DonationHandler;
 import com.ashram.donation.service.DonationService;
+import com.ashram.donation.service.DonorService;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -26,11 +28,13 @@ public class DonationController {
 
     private final DonationService donationService;
     private final DonationHandler donationHandler;
+    private final DonorService donorService;
 
     @Inject
-    public DonationController(@NonNull final DonationService donationService, @NonNull final DonationHandler donationHandler) {
+    public DonationController(@NonNull final DonationService donationService, @NonNull final DonationHandler donationHandler, @NonNull final DonorService donorService) {
         this.donationService = donationService;
         this.donationHandler = donationHandler;
+        this.donorService = donorService;
     }
 
     @POST
@@ -239,6 +243,7 @@ public class DonationController {
         return GetDonationResponse.builder()
                 .transactionId(donation.getTransactionId())
                 .donorId(donation.getDonorId())
+                .donorName(resolveDonorName(donation.getDonorId()))
                 .amount(donation.getAmount())
                 .paymentMode(donation.getPaymentMode())
                 .bankReferenceNumber(donation.getBankReferenceNumber())
@@ -248,5 +253,18 @@ public class DonationController {
                 .receiptGenerated(donation.getReceiptGenerated())
                 .acknowledgement(new AcknowledgementPojo(true, "Success"))
                 .build();
+    }
+
+    private String resolveDonorName(String donorId) {
+        if (donorId == null) {
+            return null;
+        }
+        try {
+            Donor donor = donorService.getDonorById(donorId);
+            return (donor.getFirstName() + " " + donor.getLastName()).trim();
+        } catch (Exception e) {
+            log.warn("Could not resolve donor name for donorId: {}", donorId);
+            return null;
+        }
     }
 }
