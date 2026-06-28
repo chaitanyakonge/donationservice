@@ -263,7 +263,7 @@ public class DonationController {
             Donor donor = donorService.getDonorById(donorId);
             return (donor.getFirstName() + " " + donor.getLastName()).trim();
         } catch (Exception e) {
-            log.warn("Could not resolve donor name for donorId: {}", donorId);
+            log.warn("Could not resolve donor name for donorId: {}", donorId, e);
             return null;
         }
     }
